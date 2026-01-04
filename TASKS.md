@@ -35,9 +35,11 @@
     - [x] **Metis**: Create Test (10000).
     - [x] **Hybrid**: Fix Test (5000 -> 10000).
 - [x] **Documentation & Improvements**
-    - [x] **README**: Rewritten as complete User Manual.
+    - [x] **README**: Rewritten as complete User Manual (Exhaustive File Catalog).
     - [x] **Architecture**: Updated with "Capsule" and "Hybrid" concepts.
     - [x] **Benchmarks**: Logged Hybrid graph statistics (0 Giants, 0 Islands).
+    - [x] **HotpotQA**: Drafted integration plan for Real-World Benchmarking.
+    - [x] **Refactor**: Deprecated `--num_parts` for `--target_size` (Dynamic Metis & Configurable Hybrid).
 - [ ] **Phase 2d: Hybrid Refinement (Semantic Partitions)**
     - [x] **Refine**: Upgrade Orphan Packing to use "Semantic Greedy Packing" (Cosine Similarity) instead of random Bin Packing.
     - [x] **Rerun (Hybrid V2)**:
