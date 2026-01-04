@@ -1,0 +1,50 @@
+# C-RAG: Cognitive Graph Retrieval-Augmented Generation
+
+- [ ] **Phase 1: Project Initialization & Data Ingestion**
+    - [x] Set up project structure and dependencies <!-- id: 0 -->
+    - [x] Implement Wikidata/Wikipedia subset ingest pipeline (Completed: 381k nodes) <!-- id: 1 -->
+    - [x] Build NetworkX graph and node metadata store <!-- id: 2 -->
+- [ ] **Phase 2: Graph Partitioning (Offline)**
+    - [x] Implement node embedding & partitioning logic (`src/graph/partitioning.py`) <!-- id: 3 -->
+    - [x] Run Partitioning (Completed: Louvain, 9k partitions) <!-- id: 4 -->
+- [ ] **Phase 3a: Alignment Experiments (Leiden)**
+    - [x] Implement Synthetic Data Gen (Stratified) <!-- id: 6 -->
+    - [x] Generate Data (95k samples) <!-- id: 7 -->
+    - [x] Implement Training Loop (`src/train.py` with P@1 / R@10 Metrics) <!-- id: 8 -->
+    - [x] Train Leiden Models (A: Done, B-H: Smoke Tested) <!-- id: 9 -->
+- [x] **Phase 3b: Alignment Experiments (Hybrid & Balanced)**
+    - [x] Structure Scaffolding (Partition Edges, Model Classes) <!-- id: 13 -->
+    - [x] **CoraFull Pipeline**: Implemented end-to-end testing (Ingest -> Train) on CoraFull dataset.
+    - [x] **Methods Support**: Implemented `Leiden` (Modularity) and `METIS` (Balanced) partitioning.
+    - [x] **Refactoring**: Unified Model Architecture (MLP Base), Dynamic Paths, and "Experiment Capsule" structure.
+    - [x] **Renaming**: Renamed `cora` to `corafull` in args, directories, and files.
+    - [x] **Evaluation**: Implemented `src.main evaluate` to compare all trained models on Train/Test splits. Verified metrics.
+- [x] **Phase 2b: Hybrid Partitioning Structure (Orphan Cluster Strategy)**
+    - [x] **Orphan Cluster**: Bin-pack remaining islands into new partitions.
+    - [x] **Result**: 107 Partitions. Max 200 (Strict). (Giants Eliminated).
+    - [x] **Validate**: Checked Connectivity (GCC covers 95% of nodes). All 107 partitions connected.
+- [x] **Phase 2c: Hybrid Evaluation (Completed)**
+    - [x] **Run Experiments**: Train 8 models on Hybrid partitions (CoraFull).
+    - [x] **Compare**: Evaluate vs Leiden/Metis [Hybrid Done (8.8% P@1)].
+- [x] **Phase 3c: Metis Correction (Data Scaling)**
+    - [x] **Regenerate**: Scale Metis `train.json` to 5000 samples (was 1300).
+    - [x] **Retrain**: Run 8-model matrix [Completed].
+    - [x] **Re-Evaluate**: Compare with Hybrid (Metis wins: 11.8% vs 8.8%).
+- [x] **Phase 3d: Dataset Standardization**
+    - [x] **Leiden**: Fix Train (5239 -> 5000).
+    - [x] **Metis**: Create Test (10000).
+    - [x] **Hybrid**: Fix Test (5000 -> 10000).
+- [x] **Documentation & Improvements**
+    - [x] **README**: Rewritten as complete User Manual.
+    - [x] **Architecture**: Updated with "Capsule" and "Hybrid" concepts.
+    - [x] **Benchmarks**: Logged Hybrid graph statistics (0 Giants, 0 Islands).
+- [ ] **Phase 2d: Hybrid Refinement (Semantic Partitions)**
+    - [x] **Refine**: Upgrade Orphan Packing to use "Semantic Greedy Packing" (Cosine Similarity) instead of random Bin Packing.
+    - [x] **Rerun (Hybrid V2)**:
+        - [x] **CoraFull**: Partition -> Edge -> Data (5k) -> Analyze.
+        - [x] **Wiki**: Analyzed (Sim: 0.868 vs 0.869). No Gain.
+    - [x] **Verify**: Check if Hybrid V2 beats Metis. (Verdict: Semantic Packing failed to improve Coherence).
+- [ ] **Phase 4: Runtime Agent (Dynamic Graph Stitching)**
+    - [ ] **Think**: Implement "GraphWalker" class (Skeleton) <!-- id: 10 -->
+    - [ ] **Act**: Implement "Parallel Hub Spawn" (Top-3 Degree Nodes) <!-- id: 11 -->
+    - [ ] **Observe**: Implement ColBERT Re-ranking loop <!-- id: 12 -->

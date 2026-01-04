@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Data and Artifacts (Too large for git)
+data/
+*.pt
+*.pth
+*.checkpoints
+
+# Logs and Debug
+*.log
+debug_outputs/
+
+# IDE
+.vscode/
+.idea/
+
+# Generated
+*.jsonl
+*.xml
