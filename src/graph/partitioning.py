@@ -34,7 +34,7 @@ class GraphPartitioner:
         self.embedding_dir.mkdir(parents=True, exist_ok=True)
         self.ge = GraphEngine()
 
-    def run_pipeline(self, num_parts=500, method="leiden"):
+    def run_pipeline(self, target_size=200, method="leiden"):
         # 1. Load Graph Structure
         nodes_path = self.data_dir / "nodes.jsonl"
         edges_path = self.data_dir / "edges.jsonl"
@@ -48,7 +48,7 @@ class GraphPartitioner:
         self.compute_node_embeddings()
         
         # 3. Partition Graph
-        self.compute_partitions(num_parts, method=method)
+        self.compute_partitions(target_size=target_size, method=method)
         
         # 4. Save
         save_path = self.output_dir / "full_graph.pt"
@@ -112,20 +112,19 @@ class GraphPartitioner:
         print(f"    Saving full embeddings to {emb_path}...")
         torch.save(self.ge.data.x, emb_path)
 
-    def compute_partitions(self, num_parts, method="leiden"):
-        print(f"  • Running Partitioning (Method: {method.upper()})...")
+
+
+    def compute_partitions(self, target_size=200, method="leiden"):
+        print(f"  • Running Partitioning (Method: {method.upper()}, Target Size: {target_size})...")
         
         if method == "metis":
-            # Dynamic K Calculation to ensure 100-200 nodes per partition (Target ~150)
-            # The user requested skipping fixed K and using dynamic sizing.
-            # We override num_parts here.
             num_nodes = self.ge.data.num_nodes
-            target_size = 180
+            # Dynamic K Calculation
             dynamic_k = max(1, num_nodes // target_size)
             print(f"  • Metis Dynamic K: {num_nodes} nodes / {target_size} = {dynamic_k} partitions.")
             self._partition_metis(dynamic_k)
         elif method == "hybrid":
-            self._partition_hybrid()
+            self._partition_hybrid(target_size=target_size)
         else:
             self._partition_leiden()
 
@@ -200,29 +199,32 @@ class GraphPartitioner:
         
         self._compute_centroids()
 
-    def _partition_hybrid(self):
+    def _partition_hybrid(self, target_size=200):
         print("    Running Hybrid Partitioning (Recursive Leiden + Island Merge)...")
         # Step 0: Initial Leiden
         self._partition_leiden()
         
-        # Step 1: Semantic Merge (Islands < 100)
+        min_s = target_size // 2
+        max_s = target_size
+        
+        # Step 1: Semantic Merge (Islands < min_s)
         # We process merging FIRST so that if a merged group becomes a giant, 
         # the subsequent split step will catch it.
-        print("    🏝️ Step 1: Merging Islands (< 100 nodes)...")
-        self._merge_islands(min_size=100, max_capacity=200)
+        print(f"    🏝️ Step 1: Merging Islands (< {min_s} nodes)...")
+        self._merge_islands(min_size=min_s, max_capacity=max_s)
         
-        # Step 2: Recursive Split (Giants > 200)
-        print("    🌀 Step 2: Recursively Splitting Giants (> 200 nodes)...")
-        self._recursive_split_giants(max_size=200)
+        # Step 2: Recursive Split (Giants > max_s)
+        print(f"    🌀 Step 2: Recursively Splitting Giants (> {max_s} nodes)...")
+        self._recursive_split_giants(max_size=max_s)
         
-        # Step 3: Cleanup Merge (New Islands < 100)
+        # Step 3: Cleanup Merge (New Islands < min_s)
         # Splitting giants creates new tiny fragments. We absorb them now.
-        print("    🧹 Step 3: Cleanup Merge (New Islands < 100 nodes)...")
-        self._merge_islands(min_size=100, max_capacity=200)
+        print(f"    🧹 Step 3: Cleanup Merge (New Islands < {min_s} nodes)...")
+        self._merge_islands(min_size=min_s, max_capacity=max_s)
         
         # Step 4: Cluster Orphans
         # Any remaining islands (that didn't fit) get grouped together.
-        self._cluster_orphans(min_size=100, max_capacity=200)
+        self._cluster_orphans(min_size=min_s, max_capacity=max_s)
         
         # Step 5: Re-index
         print("    Examples of final partitions:")

@@ -16,7 +16,7 @@ def main():
     # 2. Partition
     parser_part = subparsers.add_parser("partition", help="Partition the graph")
     parser_part.add_argument("--dataset", type=str, default="wiki", choices=["wiki", "corafull"], help="Target Dataset")
-    parser_part.add_argument("--num_parts", type=int, default=500, help="Number of partitions")
+    parser_part.add_argument("--target_size", type=int, default=200, help="Target number of Nodes per Partition")
     parser_part.add_argument("--method", type=str, default="leiden", choices=["leiden", "metis", "hybrid"], help="Partitioning Strategy")
     
     # ... (generate_data)
@@ -27,6 +27,8 @@ def main():
     parser_gen.add_argument("--dataset", type=str, default="wiki", choices=["wiki", "corafull"], help="Target Dataset")
     parser_gen.add_argument("--method", type=str, default="leiden", choices=["leiden", "metis", "hybrid"], help="Partitioning Strategy")
     parser_gen.add_argument("--size", type=int, default=100000, help="Number of samples to generate")
+    
+
     
     # 4. Train
     parser_train = subparsers.add_parser("train", help="Train alignment model")
@@ -59,13 +61,13 @@ def main():
     parser_cora = subparsers.add_parser("corafull", help="Run CoraFull Pipeline")
     parser_cora.add_argument("--step", type=str, default="all", choices=["ingest", "partition", "extract_edges", "generate", "train", "all"])
     parser_cora.add_argument("--method", type=str, default="leiden", choices=["leiden", "metis"], help="Partitioning Strategy")
-    parser_cora.add_argument("--num_parts", type=int, default=100, help="Number of Partitions")
+    parser_cora.add_argument("--target_size", type=int, default=200, help="Target number of Nodes per Partition")
 
     # 7. System Verification
     parser_verify = subparsers.add_parser("verify_pipeline", help="Run internal pipeline verification (Dry Run)")
     parser_verify.add_argument("--method", type=str, default="leiden", choices=["leiden", "metis", "hybrid"])
     parser_verify.add_argument("--dataset", type=str, default="wiki", choices=["wiki", "corafull"], help="Target Dataset")
-    parser_verify.add_argument("--num_parts", type=int, default=10, help="Number of Partitions (Dry Run)")
+    parser_verify.add_argument("--target_size", type=int, default=200, help="Target number of Nodes per Partition (Dry Run)")
 
     args = parser.parse_args()
     
@@ -92,7 +94,7 @@ def main():
         print(f"Partitioning Method: {args.method.upper()} -> {out_dir}")
         
         gp = GraphPartitioner(data_dir=data_dir, output_dir=out_dir)
-        gp.run_pipeline(num_parts=args.num_parts, method=args.method)
+        gp.run_pipeline(target_size=args.target_size, method=args.method)
         print("Partitioning complete.")
         
     elif args.command == "generate_data":
@@ -290,7 +292,7 @@ def main():
             sys.exit(1)
             
         gp = GraphPartitioner(data_dir=processed_dir, output_dir=out_dir_root)
-        gp.run_pipeline(num_parts=args.num_parts, method=args.method) 
+        gp.run_pipeline(target_size=args.target_size, method=args.method) 
         
         if not os.path.exists(full_graph_path):
             print(f"❌ Partitioning Failed. Missing {full_graph_path}")
@@ -348,7 +350,7 @@ def main():
              else:
                  print(f"\nStep 2: Embedding & Partitioning ({args.method.upper()})...")
                  gp = GraphPartitioner(data_dir="data/corafull/processed", output_dir=base_dir)
-                 gp.run_pipeline(num_parts=args.num_parts, method=args.method)
+                 gp.run_pipeline(target_size=args.target_size, method=args.method)
              
         if args.step in ["extract_edges", "all"]:
              if args.step == "all" and os.path.exists(edges_path):

@@ -18,7 +18,7 @@ pip install -r requirements.txt
 To see the system in action on a smaller dataset (CoraFull), run the full pipeline using the **Winner Strategy (Metis)**:
 ```bash
 # Runs: Ingest -> Partition (Metis) -> Edge Extraction -> Data Gen -> Train MLP -> Evaluate
-python -m src.main corafull --step all --method metis --num_parts 100
+python -m src.main corafull --step all --method metis --target_size 200
 ```
 
 ---
@@ -38,13 +38,13 @@ We support three strategies. **Metis** is recommended for best alignment perform
 **Option A: Metis (Recommended)**
 Strictly balanced sizes. Preserves global structure (Min-Cut).
 ```bash
-python -m src.main partition --dataset corafull --method metis --num_parts 100
+python -m src.main partition --dataset corafull --method metis --target_size 200
 ```
 
 **Option B: Hybrid (Semantic)**
 Recursive splitting + bin packing. Good for interpretability but lower retrieval recall.
 ```bash
-python -m src.main partition --dataset corafull --method hybrid --num_parts 100
+python -m src.main partition --dataset corafull --method hybrid --target_size 200
 ```
 
 **Option C: Leiden (Native)**
@@ -229,7 +229,7 @@ python debug/debug_tensors.py
 ### 4. Full Experiment Loop
 ```bash
 # 1. Partition
-python -m src.main partition --dataset corafull --method metis --num_parts 100
+python -m src.main partition --dataset corafull --method metis --target_size 200
 
 # 2. Extract Edges (Required for GCN)
 python -m src.main extract_edges --dataset corafull --method metis
